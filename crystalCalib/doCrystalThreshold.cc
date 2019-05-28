@@ -447,7 +447,7 @@ void doCrystalThreshold(string fname){
   fout->Write();
   fout->Close();
 
-  ofstream fCalib(Form("%s.CrystalThreshold.dat",fname.c_str()));
+  ofstream fCalib(Form("%s.CrystalThreshold.dat",fname_simple.c_str()));
   double val,width;
   fCalib<<"#sector X Y readout thrVal thrWidth"<<endl;
   for (int isector=0;isector<20;isector++){
