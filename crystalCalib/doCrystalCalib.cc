@@ -29,7 +29,10 @@ map<pair<int, int>, int>::iterator geometry_it;
 
 int isFirst=1;
 
-
+typedef struct  {
+  double val;
+  double err;
+} return_value;
 
 
 typedef struct{
@@ -142,7 +145,7 @@ void loadGlobal(){
 }
 
 //s0 is the initial scale parameter in the relation E=Q/s0  -> Q=E*s0
-double doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double Emax){
+return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double Emax,string name){
 
   //Load histograms
   TH1D *hData=(TH1D*)fData->Get(Form("hBDXMiniCalibQ_s%i_x%i_y%i",sector, iX, iY));
@@ -152,10 +155,11 @@ double doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double
   hMC->Rebin(4);
   hData->Rebin(2);
   
-  
+  int id=geometry[make_pair(iX,iY)];
+  if (sector==1) id+=geometry.size();
   
   //Get the initial parameter
-  double s0;
+  double s0,es0;
   if (sector==0){
     s0=pTOP[make_pair(iX,iY)];
   }else{
@@ -163,7 +167,7 @@ double doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double
   }
  
   //Load the data
-  RooRealVar Q("Q","Q",Emin*s0,Emax*s0);
+  RooRealVar Q("Q",Form("Q_s%i_x%i_y%i",sector,iX,iY),Emin*s0,Emax*s0);
   RooDataHist data("data","data",Q,hData);
 
 
@@ -195,17 +199,18 @@ double doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double
 
 
   //Plotting
-  RooRealVar QPlot("QPlot","QPlot",0,800);
+  RooRealVar QPlot(Form("Q_s%i_x%i_y%i_id%i",sector,iX,iY,id),Form("Q_s%i_x%i_y%i_id%i",sector,iX,iY,id),0,800);
   RooDataHist dataPlot("dataPlot","data",QPlot,hData);
   
   RooPlot* frame = Q.frame();
   data.plotOn(frame,MarkerColor(kRed));
   histpdf.plotOn(frame);
+  model.plotOn(frame);
 
   RooPlot* frame2 = QPlot.frame();
   dataPlot.plotOn(frame2);
+  // model.plotOn(frame2);
   
-
   
 
   TCanvas *c=new TCanvas("c","c");
@@ -213,14 +218,17 @@ double doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double
   frame->Draw("SAME");
 
   if (isFirst){
-    c->Print(Form("%s.calib.pdf(",fData->GetName()));
+    c->Print(Form("%s.CrystalCalib.pdf(",name.c_str()));
     isFirst=0;
   }else{
-    c->Print(Form("%s.calib.pdf",fData->GetName()));
+    c->Print(Form("%s.CrystalCalib.pdf",name.c_str()));
   }
 
   s0=scale.getValV();
+  es0=scale.getError();
+  es0=es0/(s0*s0);
   s0=1/s0;
+ 
 
   c->Modified();
   c->Update();
@@ -228,7 +236,12 @@ double doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double
   
   //delete c;
 
-  return s0;
+  return_value retV;
+  
+  retV.val=s0;
+  retV.err=es0;
+
+    return retV;
   
   
    
@@ -239,9 +252,14 @@ double doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double
 
 void doCrystalCalib(string fname){
 
+  string fname_simple = fname;
+  fname_simple.erase(fname_simple.find_last_of("."), string::npos);
 
   TFile *fData=new TFile(fname.c_str()); 
   TFile *fMC=new TFile("MC.root");
+
+
+  TFile *fout=new TFile(Form("%s.CrystalCalib.root",fname_simple.c_str()),"recreate");
 
   double Emin=14;
   double Emax=200;
@@ -258,7 +276,7 @@ void doCrystalCalib(string fname){
 
   //  doFit(fData,fMC,0,-2,-2,Emin,Emax);
 
-  
+  TH1D *hCalib=new TH1D("hCalib","hCalib",2*geometry.size(),0.5,2*geometry.size()+0.5);
   
   for (geometry_it = geometry.begin(); geometry_it != geometry.end(); geometry_it++) {
     
@@ -275,12 +293,14 @@ void doCrystalCalib(string fname){
 
 	
 
+	return_value ret;
+	ret=doFit(fData,fMC,0,iX,iY,Emin,Emax,fname_simple);
+	cout<<" 0 "<<(id+1)<<" "<<iX<<" "<<iY<<" "<<ret.val<<"+-"<<ret.err<<" "<<pTOP[make_pair(iX,iY)]<<endl;
 	
-	ret=doFit(fData,fMC,0,iX,iY,Emin,Emax);
-	cout<<" 0 "<<iX<<" "<<iY<<" "<<ret<<" "<<pTOP[make_pair(iX,iY)]<<endl;
+	hCalib->SetBinContent(id+1,ret.val);
+	hCalib->SetBinError(id+1,ret.err);
 
-
-	calo_map[index]=ret;
+	calo_map[index]=ret.val;
 	
 
   }
@@ -296,18 +316,31 @@ void doCrystalCalib(string fname){
 	index.x=iX;
 	index.y=iY;
 	index.readout=0;
-	
-	ret=doFit(fData,fMC,1,iX,iY,Emin,Emax);
-	cout<<" 1 "<<iX<<" "<<iY<<" "<<ret<<" "<<pBOT[make_pair(iX,iY)]<<endl;
+	return_value ret;
+	ret=doFit(fData,fMC,1,iX,iY,Emin,Emax,fname_simple);
 
-	calo_map[index]=ret;
+	hCalib->SetBinContent(id+1+geometry.size(),ret.val);
+	hCalib->SetBinError(id+1+geometry.size(),ret.err);
+
+	cout<<" 1 "<<(id+1)<<" "<<iX<<" "<<iY<<" "<<ret.val<<"+-"<<ret.err<<" "<<pBOT[make_pair(iX,iY)]<<endl;
+
+	calo_map[index]=ret.val;
 	}
   
   TCanvas *cFake=new TCanvas();
-  cFake->Print(Form("%s.calib.pdf)",fData->GetName()));
+  hCalib->SetLineWidth(2);
+  hCalib->Draw();
+  cFake->Print(Form("%s.CrystalCalib.pdf)",fname_simple.c_str()));
+
+  fout->cd();
+  hCalib->Write();
+  fout->Write();
+  fout->Close();
+  
+
 
   /*Now write*/
-  ofstream ocalib(Form("%s.calib",fname.c_str()));
+  ofstream ocalib(Form("%s.CrystalCalib.dat",fname_simple.c_str()));
   ocalib<<"#sector X Y readout calib offset"<<endl;
 
   for (int isector=0;isector<20;isector++){
