@@ -7,7 +7,15 @@
 #include "TCanvas.h"
 #include "TF1.h"
 
+#include "TFile.h"
+
 #include "RooRealVar.h"
+#include "RooDataHist.h"
+#include "RooPolyVar.h"
+#include "RooHistPdf.h"
+#include "RooPolynomial.h"
+#include "RooAddPdf.h"
+#include "RooPlot.h"
 
 using namespace std;
 using namespace RooFit;
