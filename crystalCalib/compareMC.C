@@ -194,7 +194,7 @@ void compareMC(string fname){
   string fname_simple = fname;
   fname_simple.erase(fname_simple.find_last_of("."), string::npos);
   
-  TFile *fout=new TFile(Form("%s.CompareMC.root",fname_simple.c_str()),"recreate");
+  TFile *fout=new TFile(Form("%s.compareMC.root",fname_simple.c_str()),"recreate");
 
 
   
@@ -216,7 +216,7 @@ void compareMC(string fname){
 
  
   TCanvas *c=new TCanvas("cout");
-  c->Print(Form("%s.MCcomparison.pdf(",fname_simple.c_str()));
+  c->Print(Form("%s.compareMC.pdf(",fname_simple.c_str()));
   
 
   double integralData,integralMC;
@@ -238,7 +238,7 @@ void compareMC(string fname){
     hMC->SetMarkerColor(2);
     hMC->Draw("HISTSAME");
     
-    c->Print(Form("%s.MCcomparison.pdf",fname_simple.c_str()));
+    c->Print(Form("%s.compareMC.pdf",fname_simple.c_str()));
   
     integralData=hData->Integral(hData->FindBin(20.),hData->FindBin(150.),"width");
     integralMC=hMC->Integral(hMC->FindBin(20.),hMC->FindBin(150.),"width");
@@ -258,7 +258,7 @@ void compareMC(string fname){
     hMC->SetLineColor(2);
     hMC->SetMarkerColor(2);
     hMC->Draw("HISTSAME");
-     c->Print(Form("%s.MCcomparison.pdf",fname_simple.c_str()));
+     c->Print(Form("%s.compareMC.pdf",fname_simple.c_str()));
 
  
 
@@ -285,7 +285,7 @@ void compareMC(string fname){
   hTOP->Draw("colz");
   c2->cd(2);
   hBOT->Draw("colz");
-  c->Print(Form("%s.MCcomparison.pdf)",fname_simple.c_str()));
+  c->Print(Form("%s.compareMC.pdf)",fname_simple.c_str()));
 
   fout->cd();
   hTOP->Write();
