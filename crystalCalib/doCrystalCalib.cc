@@ -96,6 +96,7 @@ void loadGlobal(){
   geometry[make_pair(-1, 3)] = 21;
   geometry[make_pair(1, 3)] = 22;
 
+  /*
   pTOP[make_pair(-2, -2)] = 3.7;
   pTOP[make_pair(-1, -2)] = 3.2;
   pTOP[make_pair(0, -2)] = 3.5;
@@ -141,6 +142,58 @@ void loadGlobal(){
   pBOT[make_pair(2, 2)] = 2.0;
   pBOT[make_pair(-1, 3)] = 3.2;
   pBOT[make_pair(1, 3)] = 1.6;
+  */
+
+
+  pTOP[make_pair(-2, -2)] = 16;
+  pTOP[make_pair(-1, -2)] = 13;
+  pTOP[make_pair(0, -2)] = 16;
+  pTOP[make_pair(1, -2)] = 16;
+  pTOP[make_pair(2, -2)] = 14;
+  pTOP[make_pair(0, -1)] = 15.5;
+  pTOP[make_pair(-2, 0)] = 8.;
+  pTOP[make_pair(-1, 0)] = 8.5;
+  pTOP[make_pair(0, 0)] = 15;
+  pTOP[make_pair(1, 0)] = 8.6;
+  pTOP[make_pair(2, 0)] = 8.8;
+  pTOP[make_pair(-2, 1)] = 8.2;
+  pTOP[make_pair(-1, 1)] = 10.2;
+  pTOP[make_pair(0, 1)] = 13.2;
+  pTOP[make_pair(1, 1)] = 9.8;
+  pTOP[make_pair(2, 1)] = 8.3;
+  pTOP[make_pair(-2, 2)] = 15.3;
+  pTOP[make_pair(-1, 2)] = 12.3;
+  pTOP[make_pair(1, 2)] = 10.3;
+  pTOP[make_pair(2, 2)] = 10.3;
+  pTOP[make_pair(-1, 3)] = 10.3;
+  pTOP[make_pair(1, 3)] = 16.3;
+
+  pBOT[make_pair(-2, -2)] = 15;
+  pBOT[make_pair(-1, -2)] = 14;
+  pBOT[make_pair(0, -2)] =16.5;
+  pBOT[make_pair(1, -2)] = 16.5;
+  pBOT[make_pair(2, -2)] = 16.5;
+  pBOT[make_pair(0, -1)] = 16.8;
+  pBOT[make_pair(-2, 0)] = 22.5;
+  pBOT[make_pair(-1, 0)] = 9.5;
+  pBOT[make_pair(0, 0)] = 16.5;
+  pBOT[make_pair(1, 0)] = 10.0;
+  pBOT[make_pair(2, 0)] = 10.5;
+  pBOT[make_pair(-2, 1)] = 16.5;
+  pBOT[make_pair(-1, 1)] = 10.5;
+  pBOT[make_pair(0, 1)] = 16.;
+  pBOT[make_pair(1, 1)] = 11.5;
+  pBOT[make_pair(2, 1)] = 8.5;
+  pBOT[make_pair(-2, 2)] = 9.6;
+  pBOT[make_pair(-1, 2)] = 19.;
+  pBOT[make_pair(1, 2)] = 9.;
+  pBOT[make_pair(2, 2)] = 9.5;
+  pBOT[make_pair(-1, 3)] = 13.5;
+  pBOT[make_pair(1, 3)] = 7.5;
+  
+
+
+
 
 }
 
@@ -154,7 +207,9 @@ return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,
   hMC->Smooth();
   hMC->Rebin(4);
   hData->Rebin(2);
-  
+
+  hData->GetXaxis()->SetRangeUser(25,800);
+
   int id=geometry[make_pair(iX,iY)];
   if (sector==1) id+=geometry.size();
   
@@ -179,7 +234,7 @@ return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,
   RooDataHist histdata("histdata","histdata",E,hMC);
  
   s0=1./s0;
-  RooRealVar scale("scale","scale",s0,0,1);  //ODG: s~2..3, 1/s is within 0 and 1
+  RooRealVar scale("scale","scale",s0,0,1);  //ODG: s~10, 1/s is within 0 and 1
   RooRealVar p0("p0","p0",0.);
   RooPolyVar Qf("Qf","Qf",Q,RooArgSet(p0,scale)); //E=Q/s -> Q=E*s
   
@@ -187,10 +242,9 @@ return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,
   
   //Define bg function
   RooPolynomial pol0("pol0","pol0",Qf,RooArgList());
-
   RooRealVar f0("f0","f0",1.,0.8,1.0);
   
-  RooAddPdf model("model","model",RooArgList(histpdf,f0),RooArgList(f0));
+  RooAddPdf model("model","model",RooArgList(histpdf,pol0),RooArgList(f0));
 
 
   
@@ -199,7 +253,7 @@ return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,
 
 
   //Plotting
-  RooRealVar QPlot(Form("Q_s%i_x%i_y%i_id%i",sector,iX,iY,id),Form("Q_s%i_x%i_y%i_id%i",sector,iX,iY,id),0,800);
+  RooRealVar QPlot(Form("Q_s%i_x%i_y%i_id%i",sector,iX,iY,id),Form("Q_s%i_x%i_y%i_id%i",sector,iX,iY,id),25,1200);
   RooDataHist dataPlot("dataPlot","data",QPlot,hData);
   
   RooPlot* frame = Q.frame();
@@ -261,7 +315,7 @@ void doCrystalCalib(string fname){
 
   TFile *fout=new TFile(Form("%s.CrystalCalib.root",fname_simple.c_str()),"recreate");
 
-  double Emin=14;
+  double Emin=7;
   double Emax=200;
 
   TH1D *hData;
