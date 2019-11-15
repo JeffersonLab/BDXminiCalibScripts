@@ -322,7 +322,7 @@ void doCrystalCalib(string fname){
 
   TFile *fout=new TFile(Form("%s.CrystalCalib.root",fname_simple.c_str()),"recreate");
 
-  double Emin=7;
+  double Emin=8;
   double Emax=200;
 
   TH1D *hData;
@@ -335,10 +335,6 @@ void doCrystalCalib(string fname){
   double ret;
   CALO_IndexLight_t index;
   
-  doFit(fData,fMC,0,-1,1,Emin,Emax,fname_simple);
-  doFit(fData,fMC,0,-1,0,Emin,Emax,fname_simple);
-  doFit(fData,fMC,0,-1,0,Emin,Emax,fname_simple);
-  doFit(fData,fMC,0,-1,0,Emin,Emax,fname_simple);
 
   TH1D *hCalib=new TH1D("hCalib","hCalib",2*geometry.size(),0.5,2*geometry.size()+0.5);
   
