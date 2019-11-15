@@ -201,8 +201,12 @@ void loadGlobal(){
 return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,double Emax,string name){
 
   //Load histograms
-  TH1D *hData=(TH1D*)fData->Get(Form("hBDXMiniCalibQ_s%i_x%i_y%i",sector, iX, iY));
-  TH1D *hMC=(TH1D*)fMC->Get(Form("hBDXMiniCalibE_s%i_x%i_y%i",sector, iX, iY));
+  TH1D *hData1=(TH1D*)fData->Get(Form("hBDXMiniCalibQ_s%i_x%i_y%i",sector, iX, iY));
+  TH1D *hMC1=(TH1D*)fMC->Get(Form("hBDXMiniCalibE_s%i_x%i_y%i",sector, iX, iY));
+
+  TH1D *hData=(TH1D*)hData1->Clone(Form("hBDXMiniCalibQ_s%i_x%i_y%i",sector, iX, iY));
+  TH1D *hMC=(TH1D*)hMC1->Clone(Form("hBDXMiniCalibE_s%i_x%i_y%i",sector, iX, iY));
+
 
   hMC->Smooth();
   hMC->Rebin(4);
@@ -238,7 +242,7 @@ return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,
   RooRealVar p0("p0","p0",0.);
   RooPolyVar Qf("Qf","Qf",Q,RooArgSet(p0,scale)); //E=Q/s -> Q=E*s
   
-  RooHistPdf histpdf("histpdf","histpdf",Qf,E,histdata,0);
+  RooHistPdf histpdf("histpdf","histpdf",Qf,E,histdata,2);
   
   //Define bg function
   RooPolynomial pol0("pol0","pol0",Qf,RooArgList());
@@ -278,10 +282,11 @@ return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,
     c->Print(Form("%s.CrystalCalib.pdf",name.c_str()));
   }
 
+  cout<<sector<<" "<<iX<<" "<<iY<<" "<<s0<<" "<<1./s0<<" "<<scale.getValV()<<" "<<1./scale.getValV()<<endl;
   s0=scale.getValV();
   es0=scale.getError();
   es0=es0/(s0*s0);
-  s0=1/s0;
+  s0=1./s0;
  
 
   c->Modified();
@@ -289,13 +294,15 @@ return_value doFit(TFile *fData,TFile *fMC,int sector,int iX,int iY,double Emin,
 
   
   //delete c;
+  delete hData;
+  delete hMC;
 
   return_value retV;
   
   retV.val=s0;
   retV.err=es0;
 
-    return retV;
+   return retV;
   
   
    
@@ -327,8 +334,11 @@ void doCrystalCalib(string fname){
 
   double ret;
   CALO_IndexLight_t index;
-
-  //  doFit(fData,fMC,0,-2,-2,Emin,Emax);
+  
+  doFit(fData,fMC,0,-1,1,Emin,Emax,fname_simple);
+  doFit(fData,fMC,0,-1,0,Emin,Emax,fname_simple);
+  doFit(fData,fMC,0,-1,0,Emin,Emax,fname_simple);
+  doFit(fData,fMC,0,-1,0,Emin,Emax,fname_simple);
 
   TH1D *hCalib=new TH1D("hCalib","hCalib",2*geometry.size(),0.5,2*geometry.size()+0.5);
   
@@ -348,7 +358,10 @@ void doCrystalCalib(string fname){
 	
 
 	return_value ret;
+
+
 	ret=doFit(fData,fMC,0,iX,iY,Emin,Emax,fname_simple);
+
 	cout<<" 0 "<<(id+1)<<" "<<iX<<" "<<iY<<" "<<ret.val<<"+-"<<ret.err<<" "<<pTOP[make_pair(iX,iY)]<<endl;
 	
 	hCalib->SetBinContent(id+1,ret.val);
@@ -396,7 +409,6 @@ void doCrystalCalib(string fname){
   /*Now write*/
   ofstream ocalib(Form("%s.CrystalCalib.dat",fname_simple.c_str()));
   ocalib<<"#sector X Y readout calib offset"<<endl;
-
   for (int isector=0;isector<20;isector++){
     for (int ix=-10;ix<10;ix++){
       for (int iy=-10;iy<10;iy++){
