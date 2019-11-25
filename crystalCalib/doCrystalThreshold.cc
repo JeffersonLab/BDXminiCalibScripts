@@ -438,6 +438,25 @@ void doCrystalThreshold(string fname){
   c2->Print(Form("%s.CrystalThreshold.pdf)",fname_simple.c_str()));
   
   fout->cd();
+
+ for (geometry_it = geometry.begin(); geometry_it != geometry.end(); geometry_it++) {
+    
+    iX = (geometry_it->first).first;
+    iY = (geometry_it->first).second;
+    id = (geometry_it->second);
+    
+    id = id - 1;
+
+    hBDXMiniCalibE_thr_TOP[id]->Write();
+    hBDXMiniCalibE_thr_BOT[id]->Write();
+    hBDXMiniCalibQ_thr_TOP[id]->Write();
+    hBDXMiniCalibQ_thr_BOT[id]->Write();
+    hBDXMiniCalibA_thr_TOP[id]->Write();
+    hBDXMiniCalibA_thr_BOT[id]->Write();
+  }
+
+
+
   hThrA_val->Write();
   hThrA_width->Write();
   hThrQ_val->Write();
