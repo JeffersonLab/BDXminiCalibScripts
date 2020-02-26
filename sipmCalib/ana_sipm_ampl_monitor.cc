@@ -142,6 +142,7 @@ void ana_sipm_ampl_monitor(string fname,string ofname){
 
     g=new TGraphErrors(n_found+1,nPeak,xPeak,nPeakErr,xPeakErr);
     g->SetName(Form("g_L0_%i",ii+1));
+    g->SetTitle(g->GetName());
     g->Fit("pol1");
     g->SetMarkerColor(2);
     g->SetMarkerStyle(20);
@@ -209,6 +210,7 @@ void ana_sipm_ampl_monitor(string fname,string ofname){
 
     g=new TGraphErrors(n_found+1,nPeak,xPeak,nPeakErr,xPeakErr);
     g->SetName(Form("g_L1_%i",ii+1));
+    g->SetTitle(g->GetName());
     g->Fit("pol1");
     g->SetMarkerColor(2);
     g->SetMarkerStyle(20);
