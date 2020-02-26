@@ -214,5 +214,3 @@ def calibCharge(fname,ofname):
                     ocalib.write(str(isector)+" "+str(ilayer)+" "+str(icomponent)+" "+str(ireadout)+" "+str(amp)+" "+str(ped)+"\n")
     ocalib.close()
 
-
-calibCharge("data/1264.root","data/1264.calibQ")

@@ -191,5 +191,3 @@ def calibAmpl(fname,ofname):
                     ocalib.write(str(isector)+" "+str(ilayer)+" "+str(icomponent)+" "+str(ireadout)+" "+str(amp)+"\n")
     ocalib.close()
 
-
-calibAmpl("data/1338.root","data/1338.calibA")
