@@ -148,8 +148,6 @@ void ana_sipm_ampl_monitor(string fname,string ofname){
     g->SetMarkerStyle(20);
     gainL0[ii]=g->GetFunction("pol1")->GetParameter(1);
     
-   
-
     fileOut->cd();
     hhL0[ii]->Write();
     g->Write();
@@ -214,7 +212,7 @@ void ana_sipm_ampl_monitor(string fname,string ofname){
     g->Fit("pol1");
     g->SetMarkerColor(2);
     g->SetMarkerStyle(20);
-    gainL0[ii]=g->GetFunction("pol1")->GetParameter(1);
+    gainL1[ii]=g->GetFunction("pol1")->GetParameter(1);
         
     fileOut->cd();
     hhL1[ii]->Write();
@@ -225,20 +223,18 @@ void ana_sipm_ampl_monitor(string fname,string ofname){
  
   ofstream ocalib(ofname.c_str());
   ocalib<<"#sector layer component readout ampl"<<endl;
-
   for (int isector=0;isector<20;isector++){
     for (int ilayer=0;ilayer<4;ilayer++){
       for (int icomponent=0;icomponent<20;icomponent++){
 	for (int ireadout=1;ireadout<6;ireadout++){
 	  double amp=1;
-
-	  cout<<isector<<" "<<ilayer<<" "<<icomponent<<" "<<ireadout<<endl;
 	  if ((isector==0)and(ilayer==0)and(icomponent>=1)and(icomponent<=10)and(ireadout==1)){
 	    amp=gainL0[icomponent-1];
 	  }	  
 	  if ((isector==0)and(ilayer==1)and(icomponent>=1)and(icomponent<=10)and(ireadout==1)){
 	    amp=gainL1[icomponent-1];
 	  }
+	  ocalib<<isector<<" "<<ilayer<<" "<<icomponent<<" "<<ireadout<<" "<<amp<<endl;
 	}
       }
     }
