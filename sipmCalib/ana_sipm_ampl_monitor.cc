@@ -1,4 +1,4 @@
-
+TRandom3 mrand(1);
 //This function, given the x and y positions of found peaks, determine clusters of nearby peaks and returns the SORTED array of peaks. 
 //The minimum distance to merge is thr.
 vector<double> searchClusters(int n,double *x,double *y,double thr){
@@ -9,14 +9,19 @@ vector<double> searchClusters(int n,double *x,double *y,double thr){
   int idx=0;
   vector<double> clusters;
   
+  //A.C. a bad trick to account for the fact that y is an integer, hence we may have same counts
+ for (int ii=0;ii<n;ii++){
+   y[ii]=y[ii]+mrand.Gaus(0,0.001);
+ }
 
+ 
   for (int ii=0;ii<n;ii++){
     mymap[y[ii]]=x[ii];
   }
   
   for (it=mymap.begin();it!=mymap.end();it++){
     mx[idx++]=(*it).second;
-  }
+  }  
   
   for (int ii=0;ii<n;ii++){
     bool flag=false;
@@ -89,7 +94,6 @@ void ana_sipm_ampl_monitor(string fname,string ofname){
 
   for (int ii=0;ii<10;ii++){
     if (ii==2) continue;
-
     h=(TH1D*)hhL0[ii]->Clone(Form("hBDXMiniVetoSIPMA_L0_C%i_clone",ii+1));
    
     if (ii<8){
@@ -123,6 +127,8 @@ void ana_sipm_ampl_monitor(string fname,string ofname){
     nPeak=new double[n_found+1];
     nPeakErr=new double[n_found+1];
 
+
+  
     f=new TF1(Form("f0_%i_first",ii),"gaus",ampl-2.5*sigma,ampl+2.5*sigma);
     hhL0[ii]->Fit(f,"R+","",ampl-2.5*sigma,ampl+2.5*sigma);
     xPeak[0]=f->GetParameter(1);
